@@ -33,7 +33,7 @@ module.exports = (function() {
     return function(data, arch) {
         this.code = null;
         this.valid = true;
-        this.parsed = arch.parse(data.opcode);
+        this.parsed = arch.parse(data.disasm);
         this.jump = data.jump;
         this.pointer = (data.ptr && Long.ZERO.lt(data.ptr)) ? data.ptr : null;
         this.location = data.offset;
@@ -59,6 +59,15 @@ module.exports = (function() {
             var h = context.printer.html;
             var t = context.printer.theme;
             var a = context.printer.auto;
+            if (this.comments.length > 1) {
+                console.log(h(context.ident) + t.comment('/*'));
+                for (var i = 0; i < this.comments.length; i++) {
+                    console.log(h(context.ident) + t.comment('* ' + this.comments[i]));
+                }
+                console.log(h(context.ident) + t.comment('*/'));
+            } else if (this.comments.length == 1) {
+                console.log(h(context.ident) + t.comment('/* ' + this.comments[0] + ' */'));
+            }
             console.log(h(context.ident) + this.code + ';');
         };
     }

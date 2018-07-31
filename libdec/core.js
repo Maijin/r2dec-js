@@ -31,7 +31,7 @@ module.exports = (function() {
             if (fcn) {
                 instr.code = fcn(instr, instructions);
             } else {
-                instr.code = new Base.unknown(instr.simplified)
+                instr.code = new Base.unknown(instr.assembly)
             }
         }
     };

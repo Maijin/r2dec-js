@@ -18,6 +18,12 @@
 module.exports = (function() {
     var _internal_variable_cnt = 0;
 
+    /**
+     * Is used when there is an unknown assembly operation.
+     * Operation: __asm(assembly)
+     * 
+     * @param {string} asm Assembly operation 
+     */
     var _generic_asm = function(asm) {
         this.asm = asm;
         this.toString = function() {
@@ -27,6 +33,13 @@ module.exports = (function() {
         }
     };
 
+    /**
+     * Assigns a source value to a destination value.
+     * Operation: DST = SRC
+     * 
+     * @param {object} destination Destination value (can be also string type) 
+     * @param {object} source Source value (can be also string type)
+     */
     var _assignment = function(destination, source) {
         this.destination = destination;
         this.source = source;
@@ -38,7 +51,15 @@ module.exports = (function() {
         };
     };
 
-    var _cast_register = function(destination, source, cast) {
+    /**
+     * Assigns a source value to a destination value by casting it.
+     * Operation: DST = (cast) SRC
+     * 
+     * @param {object} destination Destination value (can be also string type) 
+     * @param {object} source Source value (can be also string type)
+     * @param {string} cast Cast operation to perform
+     */
+    var _cast_value = function(destination, source, cast) {
         this.destination = destination;
         this.source = source;
         this.cast = cast;
@@ -48,6 +69,31 @@ module.exports = (function() {
         };
     };
 
+    /**
+     * Perform a math operation with the source value and assigns the result to
+     * the destination value.
+     * Operation: DST = (op) SRC
+     * 
+     * @param {object} destination Destination value (can be also string type) 
+     * @param {object} source Source value (can be also string type)
+     * @param {string} operation Math operation to perform
+     */
+    var _math_assignment = function(destination, source, operation) {
+        this.destination = destination;
+        this.source = source;
+        this.operation = operation;
+        this.toString = function() {
+            return this.destination + ' = ' + this.operation + this.source;
+        };
+    };
+
+    /**
+     * Increments or Decrease by 1 a value.
+     * Operation: DST++ or DST--
+     * 
+     * @param {object} destination Destination value (can be also string type) 
+     * @param {string} operation Operation to show
+     */
     var _generic_inc_dec = function(destination, operation) {
         this.destination = destination;
         this.operation = operation;
@@ -56,6 +102,19 @@ module.exports = (function() {
         };
     };
 
+    /**
+     * Implements a generic math operation.
+     * Operation:
+     *     If DST == SRC_A:
+     *        DST (op)= SRC_B
+     *     Else:
+     *        DST = SRC_A (op) SRC_B
+     * 
+     * @param {object} destination Destination value (can be also string type) 
+     * @param {object} source_a Source A value (can be also string type)
+     * @param {object} source_b Source B value (can be also string type)
+     * @param {string} operation Math operation
+     */
     var _generic_math = function(destination, source_a, source_b, operation) {
         this.destination = destination;
         this.source_a = source_a;
@@ -80,16 +139,22 @@ module.exports = (function() {
             if (source_b == '0') {
                 return new _assignment(destination, '0');
             }
-            return new _generic_math(destination, source_a, source_b, '^');
+            return new _generic_math(destination, source_a, source_b, '&');
         },
         assign: function(destination, source) {
             return new _assignment(destination, source);
         },
         subtract: function(destination, source_a, source_b) {
             if (destination == source_a && source_b == '1') {
-                return new _generic_inc_dec(destination, '++');
+                return new _generic_inc_dec(destination, '--');
             }
-            return new _generic_math(destination, source_a, source_b, '^');
+            return new _generic_math(destination, source_a, source_b, '-');
+        },
+        or: function(destination, source_a, source_b) {
+            if (source_a == source_b) {
+                return new _assignment(destination, '0');
+            }
+            return new _generic_math(destination, source_a, source_b, '|');
         },
         xor: function(destination, source_a, source_b) {
             if (source_a == source_b) {
